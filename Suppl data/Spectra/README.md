@@ -1,1 +1,1 @@
-This folder contains spectra used in the paper.
+This folder contains all supplementary data used in the paper and presented as spectra.
