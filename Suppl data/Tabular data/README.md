@@ -1,1 +1,1 @@
-This folder contains all supplementary data presented under the form of tabular data.
+This file contains all the supplementary data recorded under the form of tabular data and used in the article.
