@@ -78,8 +78,8 @@ def plot_group(ax, groups, colors, legend_order, prefix_to_remove, offset_adjust
     ax.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
               loc="upper right", fontsize=14, frameon=True)
 
-    ax.set_xlabel("Raman shift (cm⁻¹)", fontsize=16)
-    ax.set_ylabel("Normalised intensity", fontsize=16)
+    ax.set_xlabel("Wavenumber (cm⁻¹)", fontsize=16)
+    ax.set_ylabel("Normalised Raman intensity (arb. unit)", fontsize=16)
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
     ax.set_xlim(200, 1200)
 
