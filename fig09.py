@@ -22,7 +22,7 @@ df["Hue"] = df["HSV"].apply(lambda x: x[0] * 360)
 df["Saturation"] = df["HSV"].apply(lambda x: x[1])
 df["Value"] = df["HSV"].apply(lambda x: x[2])
 
-# Style de points et couleurs
+# Point styles and colors
 marker_dict = {
     "Unheated sample": "X",
     "Heated sample": "X",
