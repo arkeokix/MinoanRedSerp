@@ -113,5 +113,4 @@ axes[1].set_title("Heated sample", fontsize=18)
 
 # Final layout adjustment and display
 plt.tight_layout()
-fig.savefig(r"C:\Users\kregnier\OneDrive - UCL\Articles_perso\red serp\figsbis\fig10.png", dpi=300, bbox_inches='tight')
 plt.show()
