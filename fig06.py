@@ -3,13 +3,27 @@ import seaborn as sns
 import pandas as pd
 from matplotlib.colors import ListedColormap
 
-# Load data
-file_path_data_crete = r"./Suppl data/Tabular data/suppl data pXRF.xlsx"
-df_crete = pd.read_excel(file_path_data_crete)
-df_crete = df_crete[(df_crete['Sum_of_oxydes_before_normalization'] >= 80) &
-                    (df_crete['Sum_of_oxydes_before_normalization'] <= 120)]
+def conv_elem_to_oxides(df):
+    # Mg#
+    if 'Mg' in df.columns and 'Fe' in df.columns:
+        df['Mg#'] = df['Mg'] / (df['Mg'] + df['Fe'])
 
-# Apply calibration corrections (data available upon request)
+    # Convertir les éléments en oxydes
+    for column in df.columns:
+        if column in list_oxides:
+            conv_oxide_factor = conv_oxides.query("Element == @column")['Factor']
+            oxide_name = conv_oxides.query("Element == @column")['Oxide'].iloc[0]
+            if not df[column].empty:
+                df[column] = pd.to_numeric(df[column], errors='coerce')
+                df[oxide_name] = df[column] / conv_oxide_factor.iloc[0] / 10000
+            del df[column]
+
+    df['Sum_of_oxydes_before_normalization'] = df[['MgO', 'Al2O3', 'SiO2', 'K2O', 'CaO', 'MnO', 'Fe2O3T']].sum(axis=1)
+    df['MgOSiO2'] = df['MgO'] / df['SiO2']
+    return df
+
+
+# Apply calibration corrections
 def accuracy_calib(df):
     df_corrected = df.copy()
     df_corrected['SiO2'] *= 0.87
@@ -19,19 +33,24 @@ def accuracy_calib(df):
     df_corrected['Ni'] *= 0.89
     return df_corrected
 
+
+
+# Load data from file (replace with your actual path)
+file_path_data_crete = r"./Suppl data/Tabular data/suppl data pXRF.xlsx"
+file_conv_oxide = r'./Suppl data/Tabular data/conv_oxides.xlsx'
+list_oxides = ['Al','Ca','Fe','K','Mg','Mn','Si','Ti']
+conv_oxides = pd.read_excel(file_conv_oxide)
+df_crete = pd.read_excel(file_path_data_crete)
+
+df_crete = conv_elem_to_oxides(df_crete)
+df_crete['MgO/SiO2'] = df_crete['MgO'] / df_crete['SiO2']
+df_crete.to_excel("test.xlsx")
+
 df_crete = accuracy_calib(df_crete)
 df_heating = df_crete[df_crete['Type'] == "Experimental heating"]
+print(df_heating)
 df_archeo = df_crete[df_crete['Type'] != "Experimental heating"].copy()
 
-# Join facies data
-path_facies = r"./Suppl data/Tabular data/suppl data facies.xlsx"
-df_facies = pd.read_excel(path_facies)
-df_archeo = df_archeo.merge(df_facies[['Sample ID', 'Facies']], on='Sample ID', how='left')
-unmatched_samples = df_archeo[df_archeo['Facies'].isna()]['Sample ID'].unique()
-if len(unmatched_samples) != 0:
-    print("WARNING !!! Sample IDs not matched with facies:", unmatched_samples)
-
-df_archeo.to_excel("archeo_with_facies.xlsx")
 
 # Load worldwide serpentinite data
 file_path_data_compil_serp = r"./Suppl data/Tabular data/suppl data Deschamps 2013 compil.xlsx"
@@ -44,17 +63,18 @@ for col in columns_to_multiply:
     else:
         df_world_serp[col] = pd.to_numeric(df_world_serp[col], errors='coerce')
 
-df_world_serp['MgOSiO2'] = df_world_serp['MgO'] / df_world_serp["SiO2"]
-required_columns = ["MgOSiO2", "SiO2", "CaO", "TiO2", "Ni", "MgO"]
+df_world_serp['MgO/SiO2'] = df_world_serp['MgO'] / df_world_serp["SiO2"]
+required_columns = ["MgO/SiO2", "SiO2", "CaO", "TiO2", "Ni", "MgO"]
 df_world_serp[required_columns] = df_world_serp[required_columns].apply(pd.to_numeric, errors='coerce')
 
-# Filter for facies 1 and 6 // 1 is the main facies, 6 is the red facies
+
+# Filter for facies 1 and 6
 df_facies = df_archeo[df_archeo['Facies'].isin([1, 6])]
 df_facies_1 = df_archeo[df_archeo['Facies'] == 1]
 df_facies_6 = df_archeo[df_archeo['Facies'] == 6]
 
 # Plotting
-axes_pairs = [("SiO2", "MgO"), ("CaO", "MgO"), ("TiO2", "MgO"), ("Ni", "MgO")]
+axes_pairs = [("MgO","SiO2"), ("Al2O3", "MgO/SiO2"), ("CaO", "MgO/SiO2"), ("Ni", "MgO/SiO2")]
 fig, axes = plt.subplots(2, 2, figsize=(10, 10))  # Square graphs
 n = 0
 n_list = ['a', 'b', 'c', 'd']
@@ -76,12 +96,13 @@ for ax, (axe_y, axe_x) in zip(axes.flat, axes_pairs):
     sns.scatterplot(data=df_medians, x=axe_x, y=axe_y, hue='Facies', palette={1: 'blue', 6: 'red'},
                     edgecolor='black', marker='o', facecolor='none', legend=False, ax=ax)
 
+
+
     df_heating_medians = df_heating.groupby(['Sample ID'])[[axe_x, axe_y]].median().reset_index()
     df_heating_min = df_heating.groupby(['Sample ID'])[[axe_x, axe_y]].min().reset_index()
     df_heating_max = df_heating.groupby(['Sample ID'])[[axe_x, axe_y]].max().reset_index()
     sns.scatterplot(data=df_heating_medians, x=axe_x, y=axe_y, color="gold",
                     edgecolor='black', marker='s', legend=False, ax=ax)
-
     for i, row in df_heating_medians.iterrows():
         min_value = df_heating_min.loc[i, [axe_x, axe_y]].values
         max_value = df_heating_max.loc[i, [axe_x, axe_y]].values
@@ -91,24 +112,22 @@ for ax, (axe_y, axe_x) in zip(axes.flat, axes_pairs):
                     fmt='o', color='black', capsize=5, elinewidth=0.5, alpha=0.5)
 
     # Axis labels and customizations
-    ax.set_xlabel(f"{axe_x} wt. % (anhydrous)", fontsize=14)
-    if axe_y == "Ni":
-        ax.set_ylabel(f"{axe_y} ppm", fontsize=14)
-    else:
-        ax.set_ylabel(f"{axe_y} wt. % (anhydrous)", fontsize=14)
+    # Axis labels and customizations
+    x_label = axe_x.replace("SiO2", "SiO$_2$").replace("Al2O3", "Al$_2$O$_3$").replace("Fe2O3T", "Fe$_2$O$_3$T")
+    y_label = axe_y.replace("SiO2", "SiO$_2$").replace("Al2O3", "Al$_2$O$_3$").replace("Fe2O3T", "Fe$_2$O$_3$T")
 
-    if axe_y == "SiO2":
-        ax.set_ylim(30, 50)
+    ax.set_xlabel(f"{x_label} wt.% (anhydrous normalized)", fontsize=14)
+    if axe_y == "Ni":
+        ax.set_ylabel(f"{y_label} ppm", fontsize=14)
+    else:
+        ax.set_ylabel(f"{y_label} wt.% (anhydrous normalized)", fontsize=14)
+
+
     if axe_y == "CaO":
         ax.set_yscale('log')
         ax.set_yticks([0.01, 0.1, 1, 10])
         ax.set_yticklabels(['0.01', '0.1', '1', '10'])
-    if axe_y == "TiO2":
-        ax.set_yscale('log')
-        ax.set_yticks([0.01, 0.1, 1])
-        ax.set_yticklabels(['0.01', '0.1', '1'])
-    if axe_x == "MgO":
-        ax.set_xlim(left=20, right=55)
+
 
     ax.text(-0.12, 1.05, n_list[n] + '.', transform=ax.transAxes, fontsize=16, fontweight='bold',
             va='top', ha='right')
@@ -125,8 +144,9 @@ legend_elements = [
                linewidth=2, linestyle='', alpha=0.5, label="Experimental heating samples")
 ]
 axes[1, 1].legend(handles=legend_elements, loc='upper right', fontsize=12)
+# Annoter les Sample ID pour les points archéologiques (médianes)
 
-# Final layout adjustment and display
 plt.subplots_adjust(wspace=0.5)
+# Final layout adjustment and display
 plt.tight_layout()
 plt.show()
