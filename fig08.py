@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 # Load the dataset
 file_path = r"./Suppl data/Tabular data/suppl data pMS.xlsx"
 df = pd.read_excel(file_path)
-
+print(df)
 # Filter only heated and unheated samples with necessary columns
 df_heating_sample = df[df["vase_type"].isin(["Heated sample", "Unheated sample"])][["Sample ID", "vase_type", "SI"]]
-
+print(df_heating_sample)
 # Define color palette for both categories
 palette = {
     "Unheated sample": "#3273FF",
@@ -38,10 +38,10 @@ ax = sns.boxplot(
 )
 
 # Define reference min-max ranges for blue and red vases
-blue_min = 0.0227175
-blue_max = 0.0587109
-red_min = 0.0043969
-red_max = 0.017212
+blue_min = 25.93315
+blue_max = 86.432
+red_min = 4.3969
+red_max = 16.9569
 
 # Add shaded reference ranges (min-max bands)
 ax.axhspan(blue_min, blue_max, color='#3273FF', alpha=0.2, label='Blue vases min-max')
@@ -77,7 +77,7 @@ for i in range(len(xticks) - 1):
 
 # Customize labels and title
 plt.xlabel("Experimental Sample", fontsize=18)
-plt.ylabel("Magnetic Susceptibility (SI)", fontsize=18)
+plt.ylabel(r"Magnetic Susceptibility (SI ×10$^3$)", fontsize=18)
 plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 
