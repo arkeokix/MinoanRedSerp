@@ -42,8 +42,8 @@ def plot_group(ax, groups, colors, legend_order, prefix_to_remove, offset_adjust
     for group_name, filenames in groups.items():
         color = colors[group_name]
 
-        normal_spectra = [f for f in filenames if f not in ["olivine", "antigorite", "magnetite", "diopside", "hematite"]]
-        reference_spectrum = next((f for f in filenames if f in ["olivine", "antigorite", "magnetite", "diopside", "hematite"]), None)
+        normal_spectra = [f for f in filenames if f not in ["olivine", "lizardite", "magnetite", "diopside", "hematite"]]
+        reference_spectrum = next((f for f in filenames if f in ["olivine", "lizardite", "magnetite", "diopside", "hematite"]), None)
 
         # Plot reference spectrum from subfolder
         if reference_spectrum:
@@ -87,7 +87,7 @@ def plot_group(ax, groups, colors, legend_order, prefix_to_remove, offset_adjust
 
 # display options
 unheated_groups = {
-    "Serpentine": ["MS43B_03", "MS43B_04", "antigorite"],
+    "Serpentine": ["MS43B_03", "MS43B_04", "lizardite"],
     "Olivine": ["MS43B_05", "MS43B_06", "olivine"],
     "Magnetite": ["MS43B_07", "MS43B_08", "magnetite"],
 }
