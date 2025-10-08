@@ -22,7 +22,7 @@ df["Hue"] = df["HSV"].apply(lambda x: x[0] * 360)
 df["Saturation"] = df["HSV"].apply(lambda x: x[1])
 df["Value"] = df["HSV"].apply(lambda x: x[2])
 
-# Point styles and colors
+# Style de points et couleurs
 marker_dict = {
     "Unheated sample": "X",
     "Heated sample": "X",
@@ -50,10 +50,7 @@ for sample_type, marker in marker_dict.items():
         marker=marker, s=200, edgecolor="black", ax=axes[0],
         color=color_dict[sample_type]
     )
-    for i in range(len(subset)):
-        text = axes[0].text(subset["Hue"].iloc[i], subset["Saturation"].iloc[i],
-                            subset["Sample ID"].iloc[i], fontsize=12, ha='right')
-        texts_hue_sat.append(text)
+
 
 axes[0].set_title("Hue vs Saturation", fontsize=25)
 axes[0].set_xlabel("Hue [0-360°]", fontsize=22)
@@ -69,10 +66,7 @@ for sample_type, marker in marker_dict.items():
         marker=marker, s=200, edgecolor="black", ax=axes[1],
         color=color_dict[sample_type]
     )
-    for i in range(len(subset)):
-        text = axes[1].text(subset["Hue"].iloc[i], subset["Value"].iloc[i],
-                            subset["Sample ID"].iloc[i], fontsize=12, ha='right')
-        texts_hue_val.append(text)
+
 
 axes[1].set_title("Hue vs Luminosity", fontsize=25)
 axes[1].set_xlabel("Hue [0-360°]", fontsize=22)
